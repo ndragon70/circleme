@@ -51,9 +51,11 @@ func main() {
 		//fmt.Println(data)
 		if data["result"] == "success" {
 			fmt.Printf("APPID  : %v\nPINCODE: %v\nTOKEN  : %v\n", APPID, pincode, data["token"])
+			break
 		} else {
 			if data["error"] == "token request failure - invalid app id" {
-				panic("Invalid APPID" + APPID)
+				fmt.Println("Invalid APPID" + APPID)
+				os.Exit(3)
 			}
 		}
 	}
