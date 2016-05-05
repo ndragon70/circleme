@@ -33,8 +33,9 @@ func main() {
 		h.Write([]byte(APPID + pincode))
 		hash := fmt.Sprintf("%x", h.Sum(nil))
 		fmt.Println(hash)
-		//res, err := http.Get("https://" + ipAddress + ":4567/api/TOKEN?appid=" + APPID + "&hash=" + hash)
-		res, err := http.Get("http://" + ipAddress + ":8000")
+		res, err := http.Get("https://" + ipAddress + ":4567/api/TOKEN?appid=" + APPID + "&hash=" + hash)
+		// test url
+		//res, err := http.Get("http://" + ipAddress + ":8000")
 		defer res.Body.Close()
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
