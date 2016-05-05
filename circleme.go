@@ -32,18 +32,23 @@ func main() {
 		h := sha1.New()
 		h.Write([]byte(APPID + pincode))
 		hash := fmt.Sprintf("%x", h.Sum(nil))
-		fmt.Println(hash)
+		//fmt.Println(hash)
 		res, err := http.Get("https://" + ipAddress + ":4567/api/TOKEN?appid=" + APPID + "&hash=" + hash)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
 		// test url
 		//res, err := http.Get("http://" + ipAddress + ":8000")
 		defer res.Body.Close()
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			panic(err.Error())
+			fmt.Println(err.Error())
+			os.Exit(2)
 		}
 		data := map[string]interface{}{}
 		json.Unmarshal(body, &data)
-		fmt.Println(data)
+		//fmt.Println(data)
 		if data["result"] == "success" {
 			fmt.Printf("APPID  : %v\nPINCODE: %v\nTOKEN  : %v\n", APPID, pincode, data["token"])
 		} else {
