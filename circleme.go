@@ -56,7 +56,7 @@ func (session *CircleSession) findCircleToken(start int, stop int) {
 		json.Unmarshal(body, &data)
 		//fmt.Println(data)
 		if data["result"] == "success" {
-			fmt.Printf("APPID  : %v\nPINCODE: %v\nTOKEN  : %v\nElapse Time: %v\n", APPID, pincode, data["token"], time.Since(session.StartTime).Seconds())
+			fmt.Printf("APPID  : %v\nPINCODE: %v\nTOKEN  : %v\nElapsed Time: %v\n", APPID, pincode, data["token"], time.Since(session.StartTime).Seconds())
 			break
 		} else {
 			if data["error"] == "token request failure - invalid app id" {
@@ -75,7 +75,6 @@ func main() {
 	}
 	threadsPtr := flag.Int("t", 4, "Number Of threads to use")
 	flag.Parse()
-	//fmt.Printf("Args: %v (%v)\n", flag.Args(), flag.NArg())
 
 	if flag.NArg() != 1 {
 		flag.Usage()
