@@ -92,6 +92,7 @@ func main() {
 	threads := *threadsPtr
 	fmt.Printf("Using %v Threads\n", threads)
 	groupSize := int(10000 / threads)
+	// yes I know all all number of threads divide evenly into 1000 :-)
 	for x := 0; x < threads; x++ {
 		session.Wg.Add(1)
 		start := groupSize * x
