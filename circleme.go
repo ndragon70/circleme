@@ -36,7 +36,7 @@ func (session *CircleSession) findCircleToken(start int, stop int) {
 		hash := fmt.Sprintf("%x", h.Sum(nil))
 		//		fmt.Println(hash)
 
-		start := time.Now()
+		startTime := time.Now()
 
 		res, err := session.Client.Get("https://" + session.IpAddress + ":4567/api/TOKEN?appid=" + APPID + "&hash=" + hash)
 		if err != nil {
@@ -44,7 +44,7 @@ func (session *CircleSession) findCircleToken(start int, stop int) {
 			os.Exit(1)
 		}
 		if (x % 10) == 0 {
-			fmt.Printf("Get(): time elapsed: %v\n", time.Since(start))
+			fmt.Printf("Get(): time elapsed: %v\n", time.Since(startTime))
 		}
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
