@@ -9,7 +9,7 @@ https://meetcircle.com/
 
 # Building
 ## Fedora 23 ##
-<code>
+<p><code>
 sudo dnf install golang
 
 mkdir -p $HOME/gopath
@@ -22,4 +22,4 @@ cd $HOME/gopath/src/github.com/ndragon70/circleme
 go build circleme.go 
 
 ./circleme <ip>
-</code>
+</code></p>
